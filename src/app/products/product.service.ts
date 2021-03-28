@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { combineLatest, Observable, throwError } from 'rxjs';
+import { catchError, delay, map, tap } from 'rxjs/operators';
 
 import { Product } from './product';
 import { Supplier } from '../suppliers/supplier';
 import { SupplierService } from '../suppliers/supplier.service';
+import { ProductCategory } from '../product-categories/product-category';
+import { ProductCategoryService } from './../product-categories/product-category.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,22 +16,35 @@ import { SupplierService } from '../suppliers/supplier.service';
 export class ProductService {
   private productsUrl = 'api/products';
   private suppliersUrl = this.supplierService.suppliersUrl;
+
   products$ = this.http.get<Product[]>(this.productsUrl).pipe(
-    tap((data) => console.log('Products: ', JSON.stringify(data))),
-    catchError(this.handleError)
+    delay(500),
+    tap((data) => console.log('Products: ', data)),
+    catchError((err) => this.handleError(err))
+  );
+
+  productWithCategory$ = combineLatest([
+    this.products$,
+    this.productCategoryService.productCategories$,
+  ]).pipe(
+    map(([products, categories]) =>
+      products.map(
+        (product) =>
+          ({
+            ...product,
+            category: categories.find((c) => c.id === product.categoryId).name,
+            searchKey: [product.productName],
+          } as Product)
+      )
+    ),
+    tap((data) => console.log('Productsw with categories: ', data))
   );
 
   constructor(
     private http: HttpClient,
-    private supplierService: SupplierService
+    private supplierService: SupplierService,
+    private productCategoryService: ProductCategoryService
   ) {}
-
-  // getProducts(): Observable<Product[]> {
-  //   return this.http.get<Product[]>(this.productsUrl).pipe(
-  //     tap((data) => console.log('Products: ', JSON.stringify(data))),
-  //     catchError(this.handleError)
-  //   );
-  // }
 
   private fakeProduct(): Product {
     return {

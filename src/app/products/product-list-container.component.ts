@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { EMPTY } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { ProductCategoryService } from '../product-categories/product-category.service';
 
 @Component({
   selector: 'pm-product-list-container',
@@ -7,9 +10,18 @@ import { Component, OnInit } from '@angular/core';
 export class ProductListContainerComponent implements OnInit {
   pageTitle = 'Product List';
   errorMessage = '';
-  categories;
+  selectedCategoryId: number; 
 
-  constructor() { }
+  categories$ = this.productCategoryService.productCategories$.pipe(
+    catchError((err) => {
+      this.errorMessage = err;
+      return EMPTY;
+    })
+  );
+
+  constructor(
+    private productCategoryService: ProductCategoryService
+  ) { }
 
   ngOnInit(): void {
   }
@@ -23,6 +35,6 @@ export class ProductListContainerComponent implements OnInit {
   }
 
   onSelected(categoryId: string): void {
-    console.log('Not yet implemented');
+    this.selectedCategoryId = +categoryId;
   }
 }
