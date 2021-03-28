@@ -1,13 +1,11 @@
 import {
   Component,
-  OnInit,
-  OnDestroy,
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
 } from '@angular/core';
 
-import { EMPTY, Observable, Subscription } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { Product } from './product';
@@ -17,20 +15,17 @@ import { ProductService } from './product.service';
   selector: 'pm-product-table',
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductListComponent implements OnInit {
+export class ProductListComponent {
   @Output() errorMessage = new EventEmitter<string>();
-  products$: Observable<Product[]>;
+
+  products$: Observable<Product[]> = this.productService.products$.pipe(
+    catchError((err) => {
+      this.errorMessage.emit(err);
+      return EMPTY;
+    })
+  );
 
   constructor(private productService: ProductService) {}
-
-  ngOnInit(): void {
-    this.products$ = this.productService.getProducts().pipe(
-      catchError((err) => {
-        this.errorMessage.emit(err);
-        return EMPTY;
-      })
-    );
-  }
 }
