@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import {
   BehaviorSubject,
   combineLatest,
@@ -14,10 +14,12 @@ import { ProductService } from './product.service';
 @Component({
   selector: 'pm-product-list-container',
   templateUrl: './product-list-container.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductListContainerComponent implements OnInit {
   pageTitle = 'Product List';
-  errorMessage = '';
+  errorMessageSubject = new Subject();
+  errorMessageAction$ = this.errorMessageSubject.asObservable();
   private categorySelectedSubject = new BehaviorSubject<number>(0);
   categorySelectedAction$ = this.categorySelectedSubject.asObservable();
 
@@ -32,14 +34,14 @@ export class ProductListContainerComponent implements OnInit {
     ),
     tap((product) => console.log(product)),
     catchError((err) => {
-      this.errorMessage = err;
+      this.errorMessageSubject.next(err);
       return EMPTY;
     })
   );
 
   categories$ = this.productCategoryService.productCategories$.pipe(
     catchError((err) => {
-      this.errorMessage = err;
+      this.errorMessageSubject.next(err);
       return EMPTY;
     })
   );
