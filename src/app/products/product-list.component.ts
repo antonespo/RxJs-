@@ -21,40 +21,11 @@ import { ProductCategoryService } from './../product-categories/product-category
   styleUrls: ['./product-list.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductListComponent implements OnChanges {
-  @Input() selectedCategoryId: number;
-  @Output() errorMessage = new EventEmitter<string>();
-
-  products$: Observable<Product[]> = this.productService.productWithCategory$.pipe(
-    catchError((err) => {
-      this.errorMessage.emit(err);
-      return EMPTY;
-    })
-  );
-
-  categories$ = this.productCategoryService.productCategories$.pipe(
-    catchError((err) => {
-      this.errorMessage.emit(err);
-      return EMPTY;
-    })
-  );
-
-  productSimpleFilter$: Observable<Product[]>
+export class ProductListComponent {
+  @Input() products$: Observable<Product[]>;
 
   constructor(
-    private productService: ProductService,
-    private productCategoryService: ProductCategoryService
-  ) {console.log(this.selectedCategoryId)}
+  ) {}
 
-  ngOnChanges(changes: SimpleChanges){
-    this.productSimpleFilter$ = this.productService.productWithCategory$.pipe(
-      map((products) =>
-        products.filter((product) =>
-          this.selectedCategoryId
-            ? product.categoryId === this.selectedCategoryId
-            : true
-        )
-      )
-    );
-  }
+
 }
