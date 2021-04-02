@@ -14,7 +14,7 @@ import { ProductService } from './product.service';
 @Component({
   selector: 'pm-product-list-container',
   templateUrl: './product-list-container.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductListContainerComponent implements OnInit {
   pageTitle = 'Product List';
@@ -29,7 +29,7 @@ export class ProductListContainerComponent implements OnInit {
   ]).pipe(
     map(([products, category]) =>
       products.filter((product) =>
-        (category !== 0) ? product.categoryId === category : true
+        category !== 0 ? product.categoryId === category : true
       )
     ),
     tap((product) => console.log(product)),
@@ -58,6 +58,8 @@ export class ProductListContainerComponent implements OnInit {
   }
 
   onAdd(): void {
-    console.log('Not yet implemented');
+    this.productService.addedProductSubject.next(
+      this.productService.fakeProduct()
+    );
   }
 }
