@@ -11,7 +11,6 @@ import { ProductService } from '../product.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductDetailComponent {
-  pageTitle = 'Product Detail';
   errorMessageSubject = new Subject();
   errorMessageAction$ = this.errorMessageSubject.asObservable();
   product: Product;
@@ -28,6 +27,11 @@ export class ProductDetailComponent {
       this.errorMessageSubject.next(error);
       return EMPTY;
     })
+  );
+
+  pageTitle$ = this.product$.pipe(
+    filter((product) => !!product),
+    map((product) => `Product detail: ${product.productName}`)
   );
 
   // suppliers$ = combineLatest([
