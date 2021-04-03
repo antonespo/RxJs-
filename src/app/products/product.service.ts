@@ -9,7 +9,7 @@ import {
   Subject,
   throwError,
 } from 'rxjs';
-import { catchError, delay, map, scan, tap } from 'rxjs/operators';
+import { catchError, delay, map, scan, shareReplay, tap } from 'rxjs/operators';
 
 import { Product } from './product';
 import { Supplier } from '../suppliers/supplier';
@@ -22,13 +22,16 @@ import { ProductCategoryService } from './../product-categories/product-category
 })
 export class ProductService {
   private productsUrl = 'api/products';
-  private suppliersUrl = this.supplierService.suppliersUrl;
 
   addedProductSubject = new Subject<Product>();
   addedProductAction$ = this.addedProductSubject.asObservable();
 
+  productIdSubject = new BehaviorSubject<number>(0);
+  productIdAction$ = this.productIdSubject.asObservable();
+
   products$ = this.http.get<Product[]>(this.productsUrl).pipe(
     delay(500),
+    shareReplay(1),
     tap((data) => console.log('Products: ', data)),
     catchError((err) => this.handleError(err))
   );
@@ -54,9 +57,6 @@ export class ProductService {
     tap((data) => console.log('Productsw with categories: ', data))
   );
 
-  productIdSubject = new BehaviorSubject<number>(0);
-  productIdAction$ = this.productIdSubject.asObservable();
-
   selectedProduct$ = combineLatest([
     this.productWithCategory$,
     this.productIdAction$,
@@ -66,7 +66,6 @@ export class ProductService {
 
   constructor(
     private http: HttpClient,
-    private supplierService: SupplierService,
     private productCategoryService: ProductCategoryService
   ) {}
 

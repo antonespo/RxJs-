@@ -1,15 +1,49 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { throwError, Observable } from 'rxjs';
+import { throwError, Observable, of, from } from 'rxjs';
+import { Supplier } from './supplier';
+import {
+  catchError,
+  concatMap,
+  expand,
+  filter,
+  map,
+  mergeMap,
+  scan,
+  shareReplay,
+  switchMap,
+  tap,
+  toArray,
+} from 'rxjs/operators';
+import { ProductService } from '../products/product.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SupplierService {
   suppliersUrl = 'api/suppliers';
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private productService: ProductService
+  ) {}
+
+  suppliers$ = this.productService.selectedProduct$.pipe(
+    filter((product) => !!product),
+    map((product) => product.supplierIds),
+    switchMap((ids) =>
+      from(ids).pipe(
+        mergeMap((id) => this.http.get<Supplier>(`${this.suppliersUrl}/${id}`)),
+        toArray()
+      )
+    )
+  );
+
+  // suppliers$ = this.http.get<Supplier[]>(this.suppliersUrl).pipe(
+  //   shareReplay(1),
+  //   catchError(this.handleError)
+  // )
 
   private handleError(err: any): Observable<never> {
     // in a real world app, we may send the server to some remote logging infrastructure
@@ -26,5 +60,4 @@ export class SupplierService {
     console.error(err);
     return throwError(errorMessage);
   }
-
 }
